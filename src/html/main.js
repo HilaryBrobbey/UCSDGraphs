@@ -1,4 +1,4 @@
 // Hilary Brobbey - Made minor change to resolve compiler error.
-mapInit() {
+function mapInit() {
     alert("It's in!!");
 }

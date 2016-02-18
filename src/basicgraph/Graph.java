@@ -120,9 +120,15 @@ public abstract class Graph {
 	 * 
 	 * @return The degree sequence of this graph.
 	 */
-	public List<Integer> degreeSequence() {
-		// XXX: Implement in part 1 of week 1
-		return null;
+        // Hilary Brobbey. Week 1. 02/17/2016
+	public List<Integer> degreeSequence() {		
+            ArrayList<Integer> degreeSEQ = new ArrayList<>();
+		int nVertices = getNumVertices();
+                for (int i = 0; i < nVertices; i++){
+                    degreeSEQ.add(getNeighbors(i).size() + getInNeighbors(i).size());
+                }
+                Collections.sort(degreeSEQ, Collections.reverseOrder());
+                return degreeSEQ;
 	}
 	
 	/**
@@ -228,7 +234,7 @@ public abstract class Graph {
 
 	
 	public static void main (String[] args) {
-		GraphLoader.createIntersectionsFile("data/maps/myucsd.map", "data/intersections/myucsd.intersections");
+		GraphLoader.createIntersectionsFile("data/maps/ucsd.map", "data/intersections/ucsd.intersections");
 		
 
 		// For testing of Part 1 functionality
@@ -261,6 +267,24 @@ public abstract class Graph {
 		// Test your distance2 code here.
 		System.out.println("Testing distance-two methods on sample graphs...");
 		System.out.println("Goal: implement method using two approaches.");
+                
+                //Hilary Brobbey. My tests
+                System.out.println("Loading graphs based on real data...");
+		System.out.println("Goal: use degree sequence to analyse graphs.");
+		
+		System.out.println("****");
+		System.out.println("Roads / intersections:");
+		GraphAdjMatrix graphFromFile2 = new GraphAdjMatrix();
+		GraphLoader.loadRoadMap("data/testdata/simpletest.map", graphFromFile2);
+		System.out.println(graphFromFile2);              
+		
+		System.out.println("Observe all degrees are <= 12.");
+		System.out.println("****");
+
+		System.out.println("\n****");
+                
+                System.out.println(graphFromFile2.getDistance2(6));
+		
 
 
 		
