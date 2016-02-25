@@ -1,7 +1,7 @@
 /**
  * @author UCSD MOOC development team and YOU
  *
- * A class which reprsents a graph of geographic locations Nodes in the graph
+ * A class which represents a graph of geographic locations Nodes in the graph
  * are intersections between
  *
  */
@@ -15,7 +15,6 @@ import geography.GeographicPoint;
 import geography.RoadSegment;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import util.GraphLoader;
 
 /**
@@ -164,6 +163,9 @@ public class MapGraph {
 
         // Hook for visualization.  See writeup.
         //nodeSearched.accept(next.getLocation());
+        
+        MyQueue q = new MyQueue<GeographicPoint>();
+        
         return null;
     }
 
