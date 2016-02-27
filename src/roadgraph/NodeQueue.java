@@ -1,11 +1,8 @@
-
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package roadgraph;
 
 import java.util.Collection;
@@ -15,45 +12,34 @@ import java.util.Queue;
 
 /**
  *
- * @author Hilary Brobbey
- * @Array Implementation of Queue with Wrap-around
+ * @author HilaryB
  * @param <T>
  */
-public class MyQueue<T> implements Queue<T> {
+public class NodeQueue<T> implements Queue<T> {
 
-    private T[] QueueArray;
-    private int size;
-    private int front;
-    private int rear;
-    private int openIndex;
+    Node first;
+    Node last;
+    int queueSize;
 
-    public MyQueue(int INITIAL_CAPACITY) {
-        QueueArray = (T[]) new Object[INITIAL_CAPACITY];
-        size = 0;
-        openIndex = 0;
-        front = 0;
-        rear = -1;
-    }
-
-    public MyQueue() {
-        this(100);
+    public NodeQueue() {
+        first = null;
+        last = null;
+        queueSize = 0;
     }
 
     @Override
     public boolean add(T e) {
-        if (isFull()) {
-            return false;
+        Node n = new Node(e);
+        if (first == null) { //very first item to be added to queue
+            first = n;
+            last = n;
+        } else {
+            last.next = n;
+            last = last.next;
         }
-        QueueArray[openIndex] = e; //put element at openIndex
-        rear = openIndex;
-        size++;
-        openIndex++;
-
-        if (openIndex == QueueArray.length) {//rear is at end of array. Wrap around openIndex
-            openIndex = 0;
-        }
-
+        queueSize++;
         return true;
+
     }
 
     @Override
@@ -63,51 +49,14 @@ public class MyQueue<T> implements Queue<T> {
 
     @Override
     public T remove() {
-        if (isEmpty()) {
+        if (queueSize == 0) {
             throw new NoSuchElementException("Queue is Empty!");
         }
-
-        T item = QueueArray[front]; //remove from front
-        size--;
-
-        if (front == QueueArray.length - 1) { //front has reached end of array. Wrap around.
-            front = 0;
-        } else {
-            front++;
-        }
-        if (front == QueueArray.length - 1 && !isFull()) { // After incrementing front, front has hit end of array. 
-            //If Queue is not full it means openIndex wraps around to beginning.
-            openIndex = 0;
-        }
-
+        T item = (T) first.data;
+        first = first.next;
+        queueSize--;
         return item;
-    }
 
-    public void expandQueue() {
-        T[] newQueueArray = (T[]) new Object[QueueArray.length * 2];
-        if (front >= rear) {
-            int k = 0;
-            for (int i = front; i < QueueArray.length - 1; i++) {
-                newQueueArray[k] = QueueArray[k];
-                k++;
-            }
-            for (int i = 0; i <= rear; i++) {
-                newQueueArray[k] = QueueArray[k];
-                k++;
-            }
-            front = 0;
-            rear = k;
-            openIndex = rear + 1;
-
-        } else {
-            for (int i = front; i <= rear; i++) {
-                newQueueArray[i] = QueueArray[i];
-                rear = rear - front;
-                front = 0;
-                openIndex = rear + 1;
-            }
-        }
-        QueueArray = newQueueArray;
     }
 
     @Override
@@ -122,33 +71,22 @@ public class MyQueue<T> implements Queue<T> {
 
     @Override
     public T peek() {
-        if (isEmpty()) {
-            return null;
-        }
-        return QueueArray[front];
+        return first == null ? null : (T) first.data;
     }
 
     @Override
     public int size() {
-        return size;
+        return queueSize;
     }
 
     @Override
     public boolean isEmpty() {
-        return size == 0;
-    }
-
-    private boolean isFull() {
-        return size == QueueArray.length;
-    }
-    
-    @Override
-    public String toString(){
-        
+        return queueSize == 0;
     }
 
     @Override
-    public boolean contains(Object o) {
+    public boolean contains(Object o
+    ) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -163,32 +101,39 @@ public class MyQueue<T> implements Queue<T> {
     }
 
     @Override
-    public <T> T[] toArray(T[] a) {
+    public <T> T[]
+            toArray(T[] a
+            ) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean remove(Object o) {
+    public boolean remove(Object o
+    ) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean containsAll(Collection<?> c) {
+    public boolean containsAll(Collection<?> c
+    ) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean addAll(Collection<? extends T> c) {
+    public boolean addAll(Collection<? extends T> c
+    ) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean removeAll(Collection<?> c) {
+    public boolean removeAll(Collection<?> c
+    ) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean retainAll(Collection<?> c) {
+    public boolean retainAll(Collection<?> c
+    ) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -197,15 +142,15 @@ public class MyQueue<T> implements Queue<T> {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    //Main function for testing
-    public static void main(String[] args) {
-        System.out.println("--Test--");
-        
-        MyQueue<Integer> q = new MyQueue<>();
-        q.add(1);
-        q.add(2);
-        q.add(3);
+    private class Node<T> {
+
+        T data;
+        Node next;
+
+        Node(T _data) {
+            data = _data;
+        }
+
     }
 
 }
-
