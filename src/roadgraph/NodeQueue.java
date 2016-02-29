@@ -26,6 +26,10 @@ public class NodeQueue<T> implements Queue<T> {
         last = null;
         queueSize = 0;
     }
+    
+    public boolean enqueue(T e){
+        return add(e);
+    }
 
     @Override
     public boolean add(T e) {
@@ -46,6 +50,10 @@ public class NodeQueue<T> implements Queue<T> {
     public boolean offer(T e) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    public T dequeue(){
+        return remove();
+    }
 
     @Override
     public T remove() {
@@ -53,7 +61,7 @@ public class NodeQueue<T> implements Queue<T> {
             throw new NoSuchElementException("Queue is Empty!");
         }
         T item = (T) first.data;
-        first = first.next;
+        first = first.next == null ? null : first.next;
         queueSize--;
         return item;
 
@@ -85,6 +93,28 @@ public class NodeQueue<T> implements Queue<T> {
     }
 
     @Override
+    public String toString() {
+        String str = "";
+        Node f = first;
+        while (f != null) {
+            str = str + " " + f.data.toString();
+            f = f.next;
+        }
+        return str;
+    }
+
+    /*
+     public String toString() {
+     StringBuilder str = new StringBuilder();
+     Iterator it = this.iterator();
+     while (it.hasNext()) {
+     str.append(it.next().toString()).append(" --> ");
+     }
+     str.append("NULL");
+     return str.toString();
+     }
+     */
+    @Override
     public boolean contains(Object o
     ) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -92,7 +122,7 @@ public class NodeQueue<T> implements Queue<T> {
 
     @Override
     public Iterator<T> iterator() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return new NodeQueueIterator();
     }
 
     @Override
@@ -142,6 +172,30 @@ public class NodeQueue<T> implements Queue<T> {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    private class NodeQueueIterator implements Iterator<T> {
+
+        Node iteratorCursor;
+
+        public NodeQueueIterator() {
+            iteratorCursor = first;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iteratorCursor != null;
+        }
+
+        @Override
+        public T next() {
+            if (iteratorCursor == null) {
+                throw new NoSuchElementException("Iteration has no more elements");
+            }
+            T next_data = (T) first.data;
+            iteratorCursor = first.next;
+            return next_data;
+        }
+    }
+
     private class Node<T> {
 
         T data;
@@ -150,6 +204,28 @@ public class NodeQueue<T> implements Queue<T> {
         Node(T _data) {
             data = _data;
         }
+
+    }
+
+    //main method for testing
+    public static void main(String[] args) {
+        System.out.println("--Start Testing--");
+        NodeQueue nq = new NodeQueue();
+        nq.add(1);
+        nq.add(2);
+        nq.enqueue(3);
+        nq.enqueue(4);
+        nq.add(5);
+        System.out.println("Queue Size: " + nq.queueSize);
+        System.out.println(nq);
+        System.out.println("----");
+        nq.remove();
+        nq.dequeue();
+        nq.dequeue();
+        nq.add(6);
+        nq.add(7);
+        System.out.println("Queue Size: " + nq.queueSize);
+        System.out.println(nq);
 
     }
 

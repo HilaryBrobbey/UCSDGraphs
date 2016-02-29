@@ -14,7 +14,10 @@ import java.util.function.Consumer;
 import geography.GeographicPoint;
 import geography.RoadSegment;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import util.GraphLoader;
 
 /**
@@ -91,7 +94,7 @@ public class MapGraph {
         if (GraphAdjList.containsKey(location)) {
             return false;
         }
-        GraphAdjList.put(location, null);
+        GraphAdjList.put(location, new ArrayList<>());
         numVertices++;
         return true;
     }
@@ -122,11 +125,14 @@ public class MapGraph {
         if (!GraphAdjList.containsKey(to) || !GraphAdjList.containsKey(from)) {
             throw new IllegalArgumentException("Points are not in graph!");
         }
-        
-        List<GeographicPoint> geometry = new ArrayList<GeographicPoint>(){{
-            add(from);
-            add(to);
-        }};
+
+        List<GeographicPoint> geometry = new ArrayList<GeographicPoint>() {
+            {
+                add(from);
+                add(to);
+            }
+        };
+        addNeighbor(to, from);
         RoadSegment rs = new RoadSegment(to, from, geometry, roadName, roadType, length);
         Edges.add(rs);
         numEdges++;
@@ -163,9 +169,30 @@ public class MapGraph {
 
         // Hook for visualization.  See writeup.
         //nodeSearched.accept(next.getLocation());
-        
-        MyQueue q = new MyQueue<GeographicPoint>();
-        
+        NodeQueue queue = new NodeQueue();
+        Set<GeographicPoint> visited = new HashSet<>();
+        HashMap<GeographicPoint, GeographicPoint> parent = new HashMap<>();
+
+        queue.enqueue(start);
+        visited.add(start);
+        parent.put(start, null);
+        while (!queue.isEmpty()) {
+
+            GeographicPoint curr = (GeographicPoint) queue.dequeue();
+            nodeSearched.accept(curr);
+
+            if (curr.getX() == goal.getX() && curr.getY() == goal.getY()) { //path found
+                return pathList(curr, parent);
+            }
+
+            for (GeographicPoint n : getNeighbors(curr)) {
+                if (!visited.contains(n)) {
+                    queue.enqueue(n);
+                    visited.add(n);
+                    parent.put(n, curr);
+                }
+            }
+        }
         return null;
     }
 
@@ -238,6 +265,27 @@ public class MapGraph {
         return null;
     }
 
+    private List<GeographicPoint> getNeighbors(GeographicPoint v) {
+        return GraphAdjList.get(v);
+
+    }
+
+    private void addNeighbor(GeographicPoint to, GeographicPoint from) {
+        ArrayList neighborsList = GraphAdjList.get(to);
+        neighborsList.add(from);
+        GraphAdjList.put(to, neighborsList);
+    }
+
+    private List<GeographicPoint> pathList(GeographicPoint goal, HashMap<GeographicPoint, GeographicPoint> parent) {
+        List<GeographicPoint> path = new ArrayList<>();
+        while (goal != null) {
+            path.add(goal);
+            goal = parent.get(goal);
+        }
+        Collections.reverse(path);
+        return path;
+    }
+
     public static void main(String[] args) {
         System.out.print("Making a new map...");
         MapGraph theMap = new MapGraph();
@@ -246,20 +294,33 @@ public class MapGraph {
         System.out.println("DONE.");
 
         // You can use this method for testing.  
-        /* Use this code in Week 3 End of Week Quiz
-         MapGraph theMap = new MapGraph();
+        // Use this code in Week 3 End of Week Quiz
+        //MapGraph theMap = new MapGraph();
+        /*
          System.out.print("DONE. \nLoading the map...");
          GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
          System.out.println("DONE.");
-
-         GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
-         GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
-		
-		
-         List<GeographicPoint> route = theMap.dijkstra(start,end);
-         List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
-
          */
+        //GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
+        //GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
+        GeographicPoint start = new GeographicPoint(1.0, 1.0);
+        GeographicPoint end = new GeographicPoint(7.0, 3.0);
+
+        //List<GeographicPoint> route = theMap.dijkstra(start, end);
+        //List<GeographicPoint> route2 = theMap.aStarSearch(start, end);
+        System.out.println("---Starting BFS---");
+        List<GeographicPoint> route3 = theMap.bfs(start, end);
+        System.out.println(route3.size());
+        for (GeographicPoint pt : route3) {
+            System.out.println(pt.toString());
+        }
+
+    }
+
+    private void printParentMap(HashMap<GeographicPoint, GeographicPoint> parent) {
+        for (GeographicPoint k : parent.keySet()) {
+            System.out.println("Point: " + k + " Parent: " + parent.get(k));
+        }
     }
 
 }

@@ -144,7 +144,7 @@ public class MyQueue<T> implements Queue<T> {
     
     @Override
     public String toString(){
-        
+        return "";
     }
 
     @Override
