@@ -16,8 +16,10 @@ import geography.RoadSegment;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.PriorityQueue;
 import util.GraphLoader;
 
 /**
@@ -38,12 +40,18 @@ public class MapGraph {
     private int numVertices;
     private int numEdges;
 
+    //For Week3 Dijkstra, and for later.
+    //I know! It looks clumsy. Maybe I'll refactor later
+    private HashMap<GeographicPoint, ArrayList<MapEdge>> NodeEdgesFromDictionary;
+
     public MapGraph() {
         // TODO: Implement in this constructor in WEEK 2
         GraphAdjList = new HashMap<>();
         Edges = new ArrayList<>();
         numVertices = 0;
         numEdges = 0;
+
+        NodeEdgesFromDictionary = new HashMap<>();
     }
 
     /**
@@ -64,7 +72,7 @@ public class MapGraph {
     public Set<GeographicPoint> getVertices() {
         //TODO: Implement this method in WEEK 2
 
-        return GraphAdjList.keySet();
+        return new HashSet<>(GraphAdjList.keySet());
     }
 
     /**
@@ -132,8 +140,14 @@ public class MapGraph {
                 add(to);
             }
         };
-        addNeighbor(to, from);
-        RoadSegment rs = new RoadSegment(to, from, geometry, roadName, roadType, length);
+        addNeighbor(from, to);
+        RoadSegment rs = new RoadSegment(from, to, geometry, roadName, roadType, length);
+        MapEdge mEdge = new MapEdge(from, to, roadName, roadType, length);
+        // if from GeographicPoint doesn't already exit in NodeEdgesFromDictionary then create new mapEdgesList.
+        //if it exits just get mapEdgesList
+        ArrayList<MapEdge> mapEdgesList = NodeEdgesFromDictionary.get(from) == null ? new ArrayList<>() : NodeEdgesFromDictionary.get(from);
+        mapEdgesList.add(mEdge);
+        NodeEdgesFromDictionary.put(from, mapEdgesList);
         Edges.add(rs);
         numEdges++;
     }
@@ -228,6 +242,54 @@ public class MapGraph {
 
         // Hook for visualization.  See writeup.
         //nodeSearched.accept(next.getLocation());
+        HashMap<GeographicPoint, GeographicPoint> parent = new HashMap<>();
+        PriorityQueue<MapEdge> pq = new PriorityQueue<>(500);
+        Set<GeographicPoint> visited = new HashSet<>();
+
+        parent.put(start, null);
+
+        if (start.equals(goal)) {
+            System.out.println("This Works!!");
+            return pathList(start, parent);
+        }
+
+        for (MapEdge e : NodeEdgesFromDictionary.get(start)) {
+            pq.add(e);
+            //System.out.println(e.toString());
+        }
+        visited.add(start);
+
+        while (!pq.isEmpty()) {
+            //Print Queue
+            //PrintPriorityQueue(pq);
+            //System.out.println("Before remove: " + pq.size());
+            MapEdge currMapEdge = pq.remove();
+            System.out.println(currMapEdge);
+            //System.out.println("After remove: " + pq.size());
+            //System.out.println(currMapEdge);
+            double currMapEdgeLength = currMapEdge.getLength();
+            GeographicPoint curr = currMapEdge.getEnd();
+            visited.add(curr);
+            nodeSearched.accept(curr);
+
+            if (curr.equals(goal)) { //path found
+                return pathList(curr, parent);
+            }
+            if (curr == null){
+                System.out.println("Curr is NULL for some reason");
+            }
+            for (MapEdge e : NodeEdgesFromDictionary.get(curr)) {
+               // System.out.println(e);
+                e.setLength(e.getLength() + currMapEdgeLength);
+                //don't add an edge if the end node has been visited
+                if (!visited.contains(e.getEnd())) {
+                    pq.add(e);
+                    //System.out.println("MapEdge Enqueued: " + e);
+                    parent.put(e.getEnd(), curr);
+                }
+
+            }
+        }
         return null;
     }
 
@@ -266,23 +328,22 @@ public class MapGraph {
     }
 
     private List<GeographicPoint> getNeighbors(GeographicPoint v) {
-        return GraphAdjList.get(v);
+        return new ArrayList<>(GraphAdjList.get(v));
 
     }
 
-    private void addNeighbor(GeographicPoint to, GeographicPoint from) {
-        ArrayList neighborsList = GraphAdjList.get(to);
-        neighborsList.add(from);
-        GraphAdjList.put(to, neighborsList);
+    private void addNeighbor(GeographicPoint from, GeographicPoint to) {
+        ArrayList neighborsList = GraphAdjList.get(from);
+        neighborsList.add(to);
+        GraphAdjList.put(from, neighborsList);
     }
 
     private List<GeographicPoint> pathList(GeographicPoint goal, HashMap<GeographicPoint, GeographicPoint> parent) {
         List<GeographicPoint> path = new ArrayList<>();
         while (goal != null) {
-            path.add(goal);
+            path.add(0, goal);
             goal = parent.get(goal);
         }
-        Collections.reverse(path);
         return path;
     }
 
@@ -304,14 +365,20 @@ public class MapGraph {
         //GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
         //GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
         GeographicPoint start = new GeographicPoint(1.0, 1.0);
-        GeographicPoint end = new GeographicPoint(7.0, 3.0);
+        GeographicPoint end = new GeographicPoint(8.0, -1.0);
 
-        //List<GeographicPoint> route = theMap.dijkstra(start, end);
+        List<GeographicPoint> route = theMap.dijkstra(start, end);
         //List<GeographicPoint> route2 = theMap.aStarSearch(start, end);
-        System.out.println("---Starting BFS---");
-        List<GeographicPoint> route3 = theMap.bfs(start, end);
-        System.out.println(route3.size());
-        for (GeographicPoint pt : route3) {
+//        System.out.println("---Starting BFS---");
+//        List<GeographicPoint> route3 = theMap.bfs(start, end);
+//        System.out.println(route3.size());
+//        for (GeographicPoint pt : route3) {
+//            System.out.println(pt.toString());
+//        }
+
+        System.out.println("---START DIJKSTRA---");
+        List<GeographicPoint> foundpath = theMap.dijkstra(start, end);
+        for (GeographicPoint pt : foundpath) {
             System.out.println(pt.toString());
         }
 
@@ -321,6 +388,18 @@ public class MapGraph {
         for (GeographicPoint k : parent.keySet()) {
             System.out.println("Point: " + k + " Parent: " + parent.get(k));
         }
+    }
+
+    //Helper
+    private void PrintPriorityQueue(PriorityQueue<MapEdge> pq) {
+        int count = 0;
+        for (MapEdge e : pq) {
+            count++;
+            System.out.println("++++++++++++++++++++++++++++++++");
+            System.out.println("Element # " + count);
+            System.out.println(e.toString());
+        }
+
     }
 
 }

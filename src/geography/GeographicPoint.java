@@ -40,6 +40,7 @@ public class GeographicPoint extends Double {
     	return d;
     }
     
+        @Override
     public String toString()
     {
     	return "Lat: " + getX() + ", Lon: " + getY();
