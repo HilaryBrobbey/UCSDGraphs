@@ -103,6 +103,8 @@ public class MapGraph {
             return false;
         }
         GraphAdjList.put(location, new ArrayList<>());
+        //for Dijkstra. Needs refactoring
+        NodeEdgesFromDictionary.put(location, new ArrayList<>());
         numVertices++;
         return true;
     }
@@ -143,9 +145,8 @@ public class MapGraph {
         addNeighbor(from, to);
         RoadSegment rs = new RoadSegment(from, to, geometry, roadName, roadType, length);
         MapEdge mEdge = new MapEdge(from, to, roadName, roadType, length);
-        // if from GeographicPoint doesn't already exit in NodeEdgesFromDictionary then create new mapEdgesList.
-        //if it exits just get mapEdgesList
-        ArrayList<MapEdge> mapEdgesList = NodeEdgesFromDictionary.get(from) == null ? new ArrayList<>() : NodeEdgesFromDictionary.get(from);
+        //for Dijkstra. Needs refactoring
+        ArrayList<MapEdge> mapEdgesList = NodeEdgesFromDictionary.get(from);
         mapEdgesList.add(mEdge);
         NodeEdgesFromDictionary.put(from, mapEdgesList);
         Edges.add(rs);
@@ -239,6 +240,9 @@ public class MapGraph {
     public List<GeographicPoint> dijkstra(GeographicPoint start,
             GeographicPoint goal, Consumer<GeographicPoint> nodeSearched) {
 		// TODO: Implement this method in WEEK 3
+        //System.out.println("---BEGIN PRINTING NODES EDGES FROM---");
+        //PrintNodesEdgesFromDictionary();
+        //System.out.println("---END PRINTING NODES EDGES FROM---");
 
         // Hook for visualization.  See writeup.
         //nodeSearched.accept(next.getLocation());
@@ -249,13 +253,11 @@ public class MapGraph {
         parent.put(start, null);
 
         if (start.equals(goal)) {
-            System.out.println("This Works!!");
             return pathList(start, parent);
         }
 
         for (MapEdge e : NodeEdgesFromDictionary.get(start)) {
             pq.add(e);
-            //System.out.println(e.toString());
         }
         visited.add(start);
 
@@ -275,9 +277,7 @@ public class MapGraph {
             if (curr.equals(goal)) { //path found
                 return pathList(curr, parent);
             }
-            if (curr == null){
-                System.out.println("Curr is NULL for some reason");
-            }
+
             for (MapEdge e : NodeEdgesFromDictionary.get(curr)) {
                // System.out.println(e);
                 e.setLength(e.getLength() + currMapEdgeLength);
@@ -287,7 +287,6 @@ public class MapGraph {
                     //System.out.println("MapEdge Enqueued: " + e);
                     parent.put(e.getEnd(), curr);
                 }
-
             }
         }
         return null;
@@ -400,6 +399,18 @@ public class MapGraph {
             System.out.println(e.toString());
         }
 
+    }
+
+    private void PrintNodesEdgesFromDictionary() {
+        for (GeographicPoint pt : NodeEdgesFromDictionary.keySet()){
+            System.out.println(pt);
+            System.out.println("-----------");
+            List<MapEdge> meList = NodeEdgesFromDictionary.get(pt);
+            for (MapEdge e : meList){
+                System.out.println(e);
+            }
+            System.out.println("+++++++++++++++++++++++++++++++++++");
+        }
     }
 
 }
