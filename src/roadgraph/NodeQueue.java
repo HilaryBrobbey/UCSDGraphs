@@ -26,8 +26,8 @@ public class NodeQueue<T> implements Queue<T> {
         last = null;
         queueSize = 0;
     }
-    
-    public boolean enqueue(T e){
+
+    public boolean enqueue(T e) {
         return add(e);
     }
 
@@ -50,8 +50,8 @@ public class NodeQueue<T> implements Queue<T> {
     public boolean offer(T e) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
-    public T dequeue(){
+
+    public T dequeue() {
         return remove();
     }
 
@@ -196,7 +196,7 @@ public class NodeQueue<T> implements Queue<T> {
         }
     }
 
-    private class Node<T> {
+    private class Node<T> { //internal Node struct
 
         T data;
         Node next;

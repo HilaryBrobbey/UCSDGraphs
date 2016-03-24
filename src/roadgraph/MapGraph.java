@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.PriorityQueue;
 import util.GraphLoader;
 
@@ -40,10 +41,6 @@ public class MapGraph {
     private int numVertices;
     private int numEdges;
 
-    //For Week3 Dijkstra, and for later.
-    //I know! It looks clumsy. Maybe I'll refactor later
-    private HashMap<GeographicPoint, ArrayList<MapEdge>> NodeEdgesFromDictionary;
-
     public MapGraph() {
         // TODO: Implement in this constructor in WEEK 2
         GraphAdjList = new HashMap<>();
@@ -51,7 +48,6 @@ public class MapGraph {
         numVertices = 0;
         numEdges = 0;
 
-        NodeEdgesFromDictionary = new HashMap<>();
     }
 
     /**
@@ -103,8 +99,6 @@ public class MapGraph {
             return false;
         }
         GraphAdjList.put(location, new ArrayList<>());
-        //for Dijkstra. Needs refactoring
-        NodeEdgesFromDictionary.put(location, new ArrayList<>());
         numVertices++;
         return true;
     }
@@ -144,11 +138,6 @@ public class MapGraph {
         };
         addNeighbor(from, to);
         RoadSegment rs = new RoadSegment(from, to, geometry, roadName, roadType, length);
-        MapEdge mEdge = new MapEdge(from, to, roadName, roadType, length);
-        //for Dijkstra. Needs refactoring
-        ArrayList<MapEdge> mapEdgesList = NodeEdgesFromDictionary.get(from);
-        mapEdgesList.add(mEdge);
-        NodeEdgesFromDictionary.put(from, mapEdgesList);
         Edges.add(rs);
         numEdges++;
     }
@@ -239,56 +228,56 @@ public class MapGraph {
      */
     public List<GeographicPoint> dijkstra(GeographicPoint start,
             GeographicPoint goal, Consumer<GeographicPoint> nodeSearched) {
-		// TODO: Implement this method in WEEK 3
-        //System.out.println("---BEGIN PRINTING NODES EDGES FROM---");
-        //PrintNodesEdgesFromDictionary();
-        //System.out.println("---END PRINTING NODES EDGES FROM---");
+        // TODO: Implement this method in WEEK 3
 
-        // Hook for visualization.  See writeup.
-        //nodeSearched.accept(next.getLocation());
-        HashMap<GeographicPoint, GeographicPoint> parent = new HashMap<>();
-        PriorityQueue<MapEdge> pq = new PriorityQueue<>(500);
-        Set<GeographicPoint> visited = new HashSet<>();
+        Set<MapEdge> Visited = new HashSet<>();
+        HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
+        PriorityQueue<MapNode> queue = new PriorityQueue<>();
 
-        parent.put(start, null);
+        MapNode mnStart = new MapNode(start);
+        MapNode mnGoal = new MapNode(goal);
 
-        if (start.equals(goal)) {
-            return pathList(start, parent);
-        }
+        System.out.println("---------------------DIJKSTRA-------------- \n");
+        System.out.println("Start: " + start.toString() + "\t Goal: " + goal.toString() + "\n");
 
-        for (MapEdge e : NodeEdgesFromDictionary.get(start)) {
-            pq.add(e);
-        }
-        visited.add(start);
+        queue.add(mnStart);
+        parentMap.put(mnStart.getGeographicPoint(), null);
 
-        while (!pq.isEmpty()) {
-            //Print Queue
-            //PrintPriorityQueue(pq);
-            //System.out.println("Before remove: " + pq.size());
-            MapEdge currMapEdge = pq.remove();
-            System.out.println(currMapEdge);
-            //System.out.println("After remove: " + pq.size());
-            //System.out.println(currMapEdge);
-            double currMapEdgeLength = currMapEdge.getLength();
-            GeographicPoint curr = currMapEdge.getEnd();
-            visited.add(curr);
-            nodeSearched.accept(curr);
+        while (!queue.isEmpty()) {
 
-            if (curr.equals(goal)) { //path found
-                return pathList(curr, parent);
+            MapNode current = queue.remove();
+            nodeSearched.accept(current.getGeographicPoint());
+
+            if (current.equals(mnGoal)) {
+                return pathList(current.getGeographicPoint(), parentMap);
             }
 
-            for (MapEdge e : NodeEdgesFromDictionary.get(curr)) {
-               // System.out.println(e);
-                e.setLength(e.getLength() + currMapEdgeLength);
-                //don't add an edge if the end node has been visited
-                if (!visited.contains(e.getEnd())) {
-                    pq.add(e);
-                    //System.out.println("MapEdge Enqueued: " + e);
-                    parent.put(e.getEnd(), curr);
+            for (GeographicPoint n : getNeighbors(current.getGeographicPoint())) {
+                MapNode mnNeighbor = new MapNode(n);
+                MapEdge edge = new MapEdge(current, mnNeighbor);
+
+                //System.out.println(edge.toString()+ "\n");
+                if (!Visited.contains(edge)) {
+                    //get weight of edge(i.e. distance b/n nodes) and add to cummulative and store in end Node
+                    double d = mnNeighbor.calculateDistanceFromSource(current);
+                    double cummulative_dist = current.getDistance() + d;
+                    mnNeighbor.setDistance(cummulative_dist);
+
+                    queue.add(mnNeighbor);
+
+                    System.out.println("Added to queue; " + mnNeighbor.toString() + "\n");
+
+                    parentMap.put(n, current.getGeographicPoint());
+
+                    Visited.add(edge);
                 }
+
             }
+
+            PrintPriorityQueue(queue);
+
         }
+
         return null;
     }
 
@@ -390,27 +379,14 @@ public class MapGraph {
     }
 
     //Helper
-    private void PrintPriorityQueue(PriorityQueue<MapEdge> pq) {
-        int count = 0;
-        for (MapEdge e : pq) {
-            count++;
-            System.out.println("++++++++++++++++++++++++++++++++");
-            System.out.println("Element # " + count);
-            System.out.println(e.toString());
+    private void PrintPriorityQueue(PriorityQueue<MapNode> pq) {
+        System.out.println("---BEGIN QUEUE---");
+        System.out.println("Queue size: " + pq.size());
+        for (MapNode n : pq) {
+            System.out.println(n.toString());
         }
+        System.out.println("---END QUEUE---");
 
-    }
-
-    private void PrintNodesEdgesFromDictionary() {
-        for (GeographicPoint pt : NodeEdgesFromDictionary.keySet()){
-            System.out.println(pt);
-            System.out.println("-----------");
-            List<MapEdge> meList = NodeEdgesFromDictionary.get(pt);
-            for (MapEdge e : meList){
-                System.out.println(e);
-            }
-            System.out.println("+++++++++++++++++++++++++++++++++++");
-        }
     }
 
 }

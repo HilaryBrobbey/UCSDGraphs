@@ -6,65 +6,69 @@
 package roadgraph;
 
 import geography.GeographicPoint;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author Hilary Brobbey
  */
-public class MapEdge
-        implements Comparable {
+public class MapEdge {
 
-    private double length;
-    private GeographicPoint start;
-    private GeographicPoint end;
-    private String roadName;
-    private String roadType;
+    MapNode start;
+    MapNode end;
 
-    public MapEdge(GeographicPoint from, GeographicPoint to, String _roadName, String _roadType, double _length) {
-        length = _length;
-        roadType = _roadType;
-        roadName = _roadName;
-        start = from;
-        end = to;
+    public MapEdge(MapNode _start, MapNode _end) {
+        this.start = _start;
+        this.end = _end;
     }
 
-    public double getLength() {
-        return this.length;
+    public MapNode getStartNode() {
+        return this.start;
     }
 
-    public GeographicPoint getStart() {
-        return start;
+    public MapNode getEndNode() {
+        return this.end;
     }
 
-    public GeographicPoint getEnd() {
-        return end;
-    }
+    private List<MapNode> getNodeList() {
+        MapNode s = this.getStartNode();
+        MapNode e = this.getEndNode();
 
-    public String getRoadName() {
-        return roadName;
-    }
-
-    public String getRoadType() {
-        return roadType;
+        return new ArrayList<MapNode>() {
+            {
+                add(s);
+                add(e);
+            }
+        };
     }
     
-    public void setLength(double l){
-        this.length = l;
+    
+/*
+    public boolean equals(MapEdge o) {
+        
+        MapNode m1_start = this.getStartNode();
+        MapNode m1_end = this.getEndNode();
+        MapNode m2_start = o.getStartNode();
+        MapNode m2_end = o.getEndNode();
+        
+        boolean b;
+        
+        b =  m1_start.equals(m2_start) || m1_start.equals(m2_end);
+        b = b && (m1_end.equals(m2_start) || m1_end.equals(m2_end));
+        
+        return b;
+
     }
+    */
 
     @Override
-    public int compareTo(Object o) {
-        MapEdge m = (MapEdge) o;
-        return ((Double) this.getLength()).compareTo((Double) m.getLength());
-    }
-    
-    @Override
-    public String toString(){
+    public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Start(").append(start.toString()).append(") -> End(").append(end.toString()).append(")").append("\n");
-        sb.append("RoadName: ").append(roadName).append(" RoadType: ").append(roadType).append(" Length: ").append(Double.toString(length));
-        sb.append("\n");
-        return sb.toString();       
+        GeographicPoint from = start.getGeographicPoint();
+        GeographicPoint to = end.getGeographicPoint();
+        sb.append(from.toString()).append("\t").append("-->").append("\t").append(to.toString());
+        return sb.toString();
     }
 
 }
