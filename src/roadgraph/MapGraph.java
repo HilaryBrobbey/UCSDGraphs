@@ -231,7 +231,7 @@ public class MapGraph {
         // TODO: Implement this method in WEEK 3
 
         Set<MapEdge> Visited = new HashSet<>();
-        HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
+        //HashMap<GeographicPoint, GeographicPoint> parentMap = new HashMap<>();
         PriorityQueue<MapNode> queue = new PriorityQueue<>();
 
         MapNode mnStart = new MapNode(start);
@@ -241,7 +241,8 @@ public class MapGraph {
         System.out.println("Start: " + start.toString() + "\t Goal: " + goal.toString() + "\n");
 
         queue.add(mnStart);
-        parentMap.put(mnStart.getGeographicPoint(), null);
+        //parentMap.put(mnStart.getGeographicPoint(), null);
+        mnStart.parent = null;
 
         while (!queue.isEmpty()) {
 
@@ -249,7 +250,8 @@ public class MapGraph {
             nodeSearched.accept(current.getGeographicPoint());
 
             if (current.equals(mnGoal)) {
-                return pathList(current.getGeographicPoint(), parentMap);
+                //return pathList(current.getGeographicPoint(), parentMap);
+                return pathList(current);
             }
 
             for (GeographicPoint n : getNeighbors(current.getGeographicPoint())) {
@@ -258,6 +260,7 @@ public class MapGraph {
 
                 //System.out.println(edge.toString()+ "\n");
                 if (!Visited.contains(edge)) {
+                    PrintSet(Visited);
                     //get weight of edge(i.e. distance b/n nodes) and add to cummulative and store in end Node
                     double d = mnNeighbor.calculateDistanceFromSource(current);
                     double cummulative_dist = current.getDistance() + d;
@@ -265,9 +268,10 @@ public class MapGraph {
 
                     queue.add(mnNeighbor);
 
-                    System.out.println("Added to queue; " + mnNeighbor.toString() + "\n");
+                    System.out.println("Added to queue; " + mnNeighbor.toString() + " from " + current.toString() + "\n");
 
-                    parentMap.put(n, current.getGeographicPoint());
+                    //parentMap.put(n, current.getGeographicPoint());
+                    mnNeighbor.parent = current;
 
                     Visited.add(edge);
                 }
@@ -312,6 +316,46 @@ public class MapGraph {
 
         // Hook for visualization.  See writeup.
         //nodeSearched.accept(next.getLocation());
+        Set<MapEdge> Visited = new HashSet<>();
+        PriorityQueue<MapNode> queue = new PriorityQueue<>();
+
+        MapNode mnStart = new MapNode(start);
+        MapNode mnGoal = new MapNode(goal);
+
+        queue.add(mnStart);
+        
+        mnStart.parent = null;
+
+        while (!queue.isEmpty()) {
+
+            MapNode current = queue.remove();
+            nodeSearched.accept(current.getGeographicPoint());
+
+            if (current.equals(mnGoal)) {
+                //return pathList(current.getGeographicPoint(), parentMap);
+                return pathList(current);
+            }
+
+            for (GeographicPoint n : getNeighbors(current.getGeographicPoint())) {
+                MapNode mnNeighbor = new MapNode(n);
+                MapEdge edge = new MapEdge(current, mnNeighbor);
+
+                //System.out.println(edge.toString()+ "\n");
+                if (!Visited.contains(edge)) {
+                    //get weight of edge(i.e. aStar distance b/n nodes) and add to cummulative and store in end Node
+                    double d = mnNeighbor.calculateAstarDistance(current, mnGoal);
+                    double cummulative_dist = current.getDistance() + d;
+                    mnNeighbor.setDistance(cummulative_dist);
+
+                    queue.add(mnNeighbor);
+
+                    mnNeighbor.parent = current;
+
+                    Visited.add(edge);
+                }
+            }
+        }
+
         return null;
     }
 
@@ -332,6 +376,16 @@ public class MapGraph {
             path.add(0, goal);
             goal = parent.get(goal);
         }
+        return path;
+    }
+
+    private List<GeographicPoint> pathList(MapNode goal) {
+        List<GeographicPoint> path = new ArrayList<>();
+        while (goal != null) {
+            path.add(0, goal.getGeographicPoint());
+            goal = goal.parent;
+        }
+
         return path;
     }
 
@@ -387,6 +441,14 @@ public class MapGraph {
         }
         System.out.println("---END QUEUE---");
 
+    }
+
+    private void PrintSet(Set<MapEdge> s) {
+        System.out.println("Visited Set: ");
+        for (MapEdge e : s) {
+            System.out.print("|| " + e.toString());
+        }
+        System.out.println("\n");
     }
 
 }

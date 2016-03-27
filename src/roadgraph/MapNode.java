@@ -6,6 +6,7 @@
 package roadgraph;
 
 import geography.GeographicPoint;
+import java.util.Objects;
 
 /**
  *
@@ -15,10 +16,16 @@ public class MapNode implements Comparable {
 
     private double distance;
     final private GeographicPoint point;
+    
+    private double aStarDistance; // heuristic estimated cost from vertex to goal
+    
+    public MapNode parent = null;
 
     public MapNode(GeographicPoint _point) {
         this.point = _point;
         this.distance = 0.0;
+        this.aStarDistance = 0.0;
+ 
     }
 
     public double getDistance() {
@@ -33,14 +40,38 @@ public class MapNode implements Comparable {
         double d = this.getGeographicPoint().distance(source.getGeographicPoint());
         return d;
     }
+    
+    public double calculateAstarDistance(MapNode source, MapNode goal){
+        double h = this.getGeographicPoint().distance(goal.getGeographicPoint());
+        return h + calculateDistanceFromSource(source);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 73 * hash + Objects.hashCode(this.point);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final MapNode other = (MapNode) obj;
+        if (!Objects.equals(this.point, other.point)) {
+            return false;
+        }
+        return true;
+    }
 
     public GeographicPoint getGeographicPoint() {
         return point;
     }
-    
-    public boolean equals(MapNode o){
-        return this.getGeographicPoint().equals(o.getGeographicPoint());       
-    }
+
 
     @Override
     public int compareTo(Object o) {

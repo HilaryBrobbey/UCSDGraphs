@@ -53,6 +53,7 @@ public class DijkstraGrader implements Runnable {
         if (infinite) {
             System.out.println(printOutput((double)grader.correct / TESTS, grader.feedback + "\nYour program entered an infinite loop."));
         }
+        
     }
 
     /** Run a test case on an adjacency list and adjacency matrix.
